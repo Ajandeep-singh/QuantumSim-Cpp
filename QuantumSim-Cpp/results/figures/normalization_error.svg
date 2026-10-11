@@ -1,0 +1,42 @@
+﻿<svg xmlns='http://www.w3.org/2000/svg' width='900' height='520' viewBox='0 0 900 520'>
+<rect width='100%' height='100%' fill='white'/>
+<text x='95' y='34' font-family='Arial' font-size='22' font-weight='bold'>Normalization error versus gate depth</text>
+<text x='95' y='59' font-family='Arial' font-size='13' fill='#444'>Maximum absolute norm drift across all measured qubit counts and implementations</text>
+<line x1='95' y1='420' x2='840' y2='420' stroke='#dddddd'/>
+<text x='83' y='424' text-anchor='end' font-family='Arial' font-size='12'>10^-18</text>
+<line x1='95' y1='378.5' x2='840' y2='378.5' stroke='#dddddd'/>
+<text x='83' y='382.5' text-anchor='end' font-family='Arial' font-size='12'>10^-17</text>
+<line x1='95' y1='337' x2='840' y2='337' stroke='#dddddd'/>
+<text x='83' y='341' text-anchor='end' font-family='Arial' font-size='12'>10^-16</text>
+<line x1='95' y1='295.5' x2='840' y2='295.5' stroke='#dddddd'/>
+<text x='83' y='299.5' text-anchor='end' font-family='Arial' font-size='12'>10^-15</text>
+<line x1='95' y1='254' x2='840' y2='254' stroke='#dddddd'/>
+<text x='83' y='258' text-anchor='end' font-family='Arial' font-size='12'>10^-14</text>
+<line x1='95' y1='212.5' x2='840' y2='212.5' stroke='#dddddd'/>
+<text x='83' y='216.5' text-anchor='end' font-family='Arial' font-size='12'>10^-13</text>
+<line x1='95' y1='171' x2='840' y2='171' stroke='#dddddd'/>
+<text x='83' y='175' text-anchor='end' font-family='Arial' font-size='12'>10^-12</text>
+<line x1='95' y1='129.5' x2='840' y2='129.5' stroke='#dddddd'/>
+<text x='83' y='133.5' text-anchor='end' font-family='Arial' font-size='12'>10^-11</text>
+<line x1='95' y1='88' x2='840' y2='88' stroke='#dddddd'/>
+<text x='83' y='92' text-anchor='end' font-family='Arial' font-size='12'>10^-10</text>
+<line x1='95' y1='88' x2='95' y2='420' stroke='#222'/>
+<line x1='95' y1='420' x2='840' y2='420' stroke='#222'/>
+<text x='95' y='443' text-anchor='middle' font-family='Arial' font-size='12'>1</text>
+<text x='467.5' y='443' text-anchor='middle' font-family='Arial' font-size='12'>10</text>
+<text x='840' y='443' text-anchor='middle' font-family='Arial' font-size='12'>100</text>
+<text x='467.5' y='490' text-anchor='middle' font-family='Arial' font-size='14'>Category</text>
+<text transform='translate(22 254) rotate(-90)' text-anchor='middle' font-family='Arial' font-size='14'>Absolute error (log scale)</text>
+<circle cx='95' cy='308.515' r='3.5' fill='#1769aa'/>
+<circle cx='467.5' cy='308.515' r='3.5' fill='#1769aa'/>
+<circle cx='840' cy='308.515' r='3.5' fill='#1769aa'/>
+<polyline fill='none' stroke='#1769aa' stroke-width='2' points='95,308.515 467.5,308.515 840,308.515'/>
+<line x1='115' y1='470' x2='139' y2='470' stroke='#1769aa' stroke-width='3'/>
+<text x='145' y='474' font-family='Arial' font-size='12'>X max norm error</text>
+<circle cx='95' cy='308.515' r='3.5' fill='#d1495b'/>
+<circle cx='467.5' cy='309.575' r='3.5' fill='#d1495b'/>
+<circle cx='840' cy='273.151' r='3.5' fill='#d1495b'/>
+<polyline fill='none' stroke='#d1495b' stroke-width='2' points='95,308.515 467.5,309.575 840,273.151'/>
+<line x1='370' y1='470' x2='394' y2='470' stroke='#d1495b' stroke-width='3'/>
+<text x='400' y='474' font-family='Arial' font-size='12'>P max norm error</text>
+</svg>

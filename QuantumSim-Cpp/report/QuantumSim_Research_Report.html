@@ -1,0 +1,180 @@
+﻿<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>QuantumSim-C++ Research Report</title>
+<style>
+@page { size: A4; margin: 18mm 17mm 19mm; }
+body { font-family: Arial, Helvetica, sans-serif; color: #20242a; font-size: 10.5pt; line-height: 1.48; max-width: 900px; margin: 2em auto; }
+h1 { font-size: 25pt; line-height: 1.15; border-bottom: 2px solid #1769aa; padding-bottom: .35em; }
+h2 { font-size: 17pt; color: #174a70; margin-top: 1.7em; page-break-after: avoid; }
+h3 { font-size: 13pt; page-break-after: avoid; }
+p { margin: .4em 0 .8em; } table { width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 9.5pt; }
+th,td { border: 1px solid #c7d0d8; padding: 6px 8px; text-align: left; } th { background: #eaf2f8; }
+code,pre { font-family: Consolas, monospace; } code { background: #f2f4f6; padding: 1px 3px; }
+pre { white-space: pre-wrap; background: #f3f5f7; border-left: 3px solid #1769aa; padding: 10px; font-size: 8.5pt; }
+figure { margin: 1.2em 0; page-break-inside: avoid; text-align: center; } figure img { max-width: 100%; height: auto; } figcaption { font-size: 9pt; color: #5c6670; }
+li { margin: .2em 0; } a { color: #145f91; overflow-wrap: anywhere; }
+@media print { body { max-width: none; margin: 0; } h1 { page-break-before: avoid; } }
+</style></head><body>
+<h1>QuantumSim-C++: A Small State-Vector Simulator and Gate-Application Study</h1>
+<p>
+<strong>Technical report</strong>
+ 
+<strong>Date:</strong> 2026-10-12
+ 
+<strong>Implementation:</strong> C++17, <code>std::complex&lt;double&gt;</code>
+</p>
+<h2>Abstract</h2>
+<p>
+This project implements a small pure-state quantum circuit simulator in C++17. It stores the amplitudes of an n-qubit state, applies common single- and multi-qubit gates directly to those amplitudes, computes computational-basis probabilities, and samples seeded measurement outcomes. Analytical checks include single-qubit gate identities and Bell-state correlations; reproducible randomized circuits test normalization. A controlled benchmark compares generic 2x2 matrix application with specialized X and phase-gate loops for 4 to 18 qubits and depths of 1, 10, and 100. In the recorded MinGW GCC 6.3.0 run, specialized X and phase application were faster at 18 qubits and depth 100, while both implementations yielded the same computed state for the measured cases. The largest observed normalization drift was approximately 2.52e-12. The results describe this implementation and environment only.
+</p>
+<h2>1. Introduction and motivation</h2>
+<p>
+A state-vector simulator makes the linear algebra of quantum circuits explicit: the program stores one complex number for each computational-basis state and updates those numbers under unitary operations. This is useful for learning how gate definitions, qubit ordering, numerical precision, and memory scaling meet in working software. It also exposes the main constraint of the full state-vector approach: the number of amplitudes doubles with every additional qubit.
+</p>
+<p>
+This project is an educational and experimental implementation. It does not claim to outperform established simulators. Other classical simulation approaches can exploit circuit structure such as low treewidth; those methods have different tradeoffs from storing the complete state vector [2].
+</p>
+<h2>2. Research question and objectives</h2>
+<p>
+<strong>Research question:</strong> How do generic matrix and specialized direct-amplitude gate implementations affect runtime, state storage, and numerical error as qubit count and repeated gate depth increase?
+</p>
+<p>
+Objectives:
+</p>
+<p>
+1. Implement a reusable C++17 state-vector, gate, circuit, and measurement core.
+ 
+2. Validate its behavior against analytical results and reproducible randomized checks.
+ 
+3. Compare generic and specialized implementations under fixed, repeatable circuit inputs.
+ 
+4. Preserve raw observations and report actual rather than estimated timing results.
+</p>
+<h2>3. Mathematical background</h2>
+<h3>3.1 State vectors and probabilities</h3>
+<p>
+An n-qubit pure state is
+</p>
+<p>
+<code>|psi&gt; = sum(i=0..2^n-1) a_i |i&gt;</code>, with <code>sum_i |a_i|^2 = 1</code>.
+</p>
+<p>
+The amplitudes <code>a_i</code> are complex. Born&#39;s rule assigns probability <code>|a_i|^2</code> to computational-basis outcome <code>i</code>. A one-qubit state is a vector in a two-dimensional complex space; an n-qubit state belongs to a space of dimension <code>2^n</code>. Tensor products combine subsystem states. Entangled states, such as <code>( |00&gt; + |11&gt; )/sqrt(2)</code>, cannot be written as a product of independent single-qubit states.
+</p>
+<p>
+Quantum gates are unitary transformations, so they preserve vector norm. Floating-point arithmetic can introduce small accumulated error, which is why the implementation checks normalization within a tolerance rather than requiring exact equality.
+</p>
+<h3>3.2 Bit order</h3>
+<p>
+The implementation uses little-endian indexing: qubit 0 is bit 0 of the integer basis index. If the bits of index <code>i</code> are <code>b_q</code>, then <code>i = sum_q b_q 2^q</code>; the value of qubit q is <code>(i &gt;&gt; q) &amp; 1</code>. Printed labels put the most-significant bit at the left, so for two qubits the vector is <code>[a_00, a_01, a_10, a_11]</code>. IBM&#39;s Qiskit documentation describes the same convention for integer interpretation and state-vector amplitude indexing [3].
+</p>
+<h3>3.3 Memory and operation scaling</h3>
+<p>
+The state requires <code>2^n</code> complex amplitudes. With 16 bytes per <code>std::complex&lt;double&gt;</code>, the amplitude buffer is <code>16 * 2^n</code> bytes: 20 qubits require 16 MiB; 25 require 512 MiB. A typical single-qubit gate visits <code>2^(n-1)</code> amplitude pairs, so its arithmetic work is O(2^n) with O(1) extra working storage. A full dense unitary over n qubits would require O(4^n) matrix entries and is avoided.
+</p>
+<h2>4. Simulator architecture</h2>
+<ul>
+<li><code>StateVector</code> owns the amplitude vector, computational-basis initialization, basis labels, probabilities, normalization checks, and state inspection.</li>
+<li><code>Gates</code> implements one-qubit matrices and direct pair/permutation/phase updates, plus controlled-X, controlled-Z, SWAP, and Toffoli.</li>
+<li><code>Circuit</code> records a sequence of typed operations and replays it from its configured initial basis state.</li>
+<li><code>Measurement</code> computes probability vectors and samples independent basis outcomes with a caller-provided 64-bit seed. Shot sampling does not collapse or mutate the state vector.</li>
+<li><code>main.cpp</code> provides <code>bell</code>, <code>ghz</code>, and <code>basis</code> CLI selections.</li>
+<li><code>tests/test_quantumsim.cpp</code> validates analytical behavior, errors, sampling reproducibility, and randomized circuits.</li>
+</ul>
+<p>
+For the generic single-qubit operation, each pair of basis indices differing only at target bit q is transformed by a 2x2 matrix. The loop keeps the old pair in local variables before writing the new values, so updates do not overwrite an input needed for the same operation. X instead swaps pair entries; diagonal Z/P/RZ gates update phases in place. The controlled gates operate only on basis indices satisfying their control-bit conditions. All these state-update strategies use O(2^n) worst-case traversal and O(1) extra per-state working memory.
+</p>
+<h2>5. Validation</h2>
+<p>
+The generic matrix application validates finite entries and unitarity on each call. Specialized named gates use known unitary matrices and do not repeat that check.
+</p>
+<p>
+The self-contained test program covers:
+</p>
+<ul>
+<li>X, Y, Z, H, P(phi), RX, RY, and RZ analytical examples and identities.</li>
+<li>Bell-state amplitudes and the 0.5/0.5 probabilities of <code>00</code> and <code>11</code>; <code>01</code> and <code>10</code> have zero probability.</li>
+<li>CNOT control/target bit order, CZ phase, SWAP, and Toffoli truth-table behavior.</li>
+<li>Generic controlled-H behavior on the control-one subspace.</li>
+<li>Circuit re-execution from its configured initial basis state.</li>
+<li>Seeded shot reproducibility and exact shot totals.</li>
+<li>Invalid qubit indices, repeated control/target indices, non-unitary generic matrices, non-finite phase angles, and non-normalized measurement input.</li>
+<li>50 reproducible random four-qubit circuits of 100 gates each (seed 20240517), checking normalization after each gate.</li>
+</ul>
+<p>
+The validation executable reports the number of individual checks. A successful run on the earlier core completed 5,032 checks. After adding matrix-unitarity checks and generic controlled-H assertions, the final test source compiled cleanly, but Windows Application Control blocked execution of the freshly rebuilt test binary, including an approved escalation attempt. The final suite&#39;s pass count is therefore unconfirmed; the earlier 5,032-check run is not presented as validation of the final source revision.
+</p>
+<h2>6. Experimental methodology</h2>
+<p>
+The benchmark initializes each tested state to <code>|+&gt;^n</code> using H on each qubit. It then applies X or P(0.371) repeatedly to the highest-index qubit. The generic strategy uses a 2x2 matrix; the specialized strategy uses the direct operation. The tested sizes are 4, 6, 8, 10, 12, 14, 16, and 18 qubits; tested depths are 1, 10, and 100. Each condition has three repeated measurements. Gate applications are timed without state allocation or initialization. Small cases are batched to put at least about one million amplitude positions in each timing interval. On Windows the timer is QueryPerformanceCounter. Reported runtime is the median of the three per-circuit averages.
+</p>
+<p>
+The environment was Windows with MinGW GCC 6.3.0 and flags <code>-std=c++17 -O2 -Wall -Wextra -Wpedantic</code>. The process exposed 12 logical processors; these benchmarks ran single-threaded. The raw CSV has 288 rows. <code>state_bytes</code> reports the vector&#39;s actual capacity times <code>sizeof(std::complex&lt;double&gt;)</code>, excluding executable/runtime memory and temporary sampling buffers. Error measures are absolute norm drift and L2 distance from the generic reference state after the same operation sequence.
+</p>
+<h2>7. Results</h2>
+<h3>7.1 Runtime versus state size and depth</h3>
+<p>
+At 18 qubits and depth 100, median results were:
+</p>
+<table><thead><tr>
+<th>Gate</th>
+<th>Generic matrix</th>
+<th>Specialized</th>
+<th>Generic / specialized</th>
+</tr></thead><tbody>
+<tr>
+<td>X</td>
+<td>410.30 ms</td>
+<td>24.38 ms</td>
+<td>16.83x</td>
+</tr>
+<tr>
+<td>P(0.371)</td>
+<td>405.20 ms</td>
+<td>105.69 ms</td>
+<td>3.83x</td>
+</tr>
+</tbody></table>
+<p>
+At 14 qubits, increasing repeated depth from 1 to 10 to 100 gave approximately proportional runtime growth for both strategies. For example, generic X medians were 0.257 ms, 2.511 ms, and 25.01 ms. This matches the repeated-work design of the experiment; it is not a general statement about all circuit scheduling.
+</p>
+<figure><img src='../results/figures/runtime_by_qubits.svg' alt='Runtime versus qubit count'><figcaption>Runtime versus qubit count</figcaption></figure>
+<figure><img src='../results/figures/runtime_by_depth.svg' alt='Runtime versus repeated gate depth'><figcaption>Runtime versus repeated gate depth</figcaption></figure>
+<h3>7.2 Memory scaling</h3>
+<p>
+The recorded amplitude-buffer capacities were 256 bytes at 4 qubits, 16 KiB at 10 qubits, 256 KiB at 14 qubits, and 4 MiB at 18 qubits. Adding 14 qubits multiplied the storage by 16,384, exactly the expected <code>2^14</code> ratio. These measurements end at 18 qubits; larger values in the memory table are formula-based estimates, not benchmark allocations.
+</p>
+<figure><img src='../results/figures/memory_by_qubits.svg' alt='State-vector storage versus qubit count'><figcaption>State-vector storage versus qubit count</figcaption></figure>
+<h3>7.3 Numerical behavior</h3>
+<p>
+Across the measured cases, the maximum observed absolute norm drift after one logical circuit was <code>3.4556e-15</code>, for 100 phase-gate applications at 6 qubits. The specialized and generic output vectors had computed L2 distance zero in these runs. This exact match is specific to these gate formulas and operation sequences; it does not establish zero numerical error for arbitrary circuits.
+</p>
+<figure><img src='../results/figures/normalization_error.svg' alt='Normalization error versus depth'><figcaption>Normalization error versus depth</figcaption></figure>
+<h2>8. Discussion and limitations</h2>
+<p>
+The generic path also checks matrix unitarity on every call, which adds fixed per-gate work and contributes to the measured difference, especially for small states. This is part of the measured implementation comparison and is a limitation when interpreting the speedup as arithmetic-only.
+</p>
+<p>
+Specialized operations were faster in this experiment because they avoid generic complex matrix multiplication for each pair. X becomes an amplitude swap; the phase gate multiplies only amplitudes for which the target bit is one. The observed factor varies by gate and size. It reflects implementation details, compiler optimization, the high-index target&#39;s memory access pattern, timer batching, and this specific machine.
+</p>
+<p>
+The benchmark does not compare against an established simulator, use multiple machines, measure process RSS, explore gate fusion, or vary circuit structure. The amplitude-vector size is an exact allocation measurement, but it is not total memory consumption. Only up to 18 qubits were benchmarked; 25 qubits are accepted by the library&#39;s hard limit but require about 512 MiB for amplitudes alone. The CLI defaults to rejecting requests above 20 qubits unless <code>--allow-large</code> is passed, and reports an estimate first. Simulation results can vary slightly with compiler, architecture, and floating-point implementation.
+</p>
+<p>
+This implementation supports pure-state unitary evolution and computational-basis sampling. It does not model noise, mixed states, mid-circuit measurement, classical control, GPU execution, or distributed state vectors. Tensor-network methods can exploit circuit structure under conditions such as low graph treewidth [2]; this code does not implement those alternatives.
+</p>
+<h2>9. Conclusion and future work</h2>
+<p>
+The project now provides a complete educational state-vector core, common gates, a circuit and measurement interface, a small CLI, reproducible validation, and an actual-data benchmark. The controlled experiment found faster specialized X and phase paths for its tested conditions, with small normalization drift and no measured difference from the generic reference output. The evidence is limited to this code, build, machine, and experiment.
+</p>
+<p>
+Future work could add gate fusion, noisy channels, marginal measurement, parameterized circuit files, a second compiler/hardware benchmark, and RSS measurement. Any optimization should be evaluated against the checked-in raw-data methodology and should retain analytical and randomized correctness checks.
+</p>
+<h2>References</h2>
+<p>
+1. Nielsen, M. A., &amp; Chuang, I. L. (2010). *Quantum Computation and Quantum Information* (10th anniversary ed.). Cambridge University Press.
+ 
+2. Markov, I. L., &amp; Shi, Y. (2008). Simulating quantum computation by contracting tensor networks. *SIAM Journal on Computing, 38*(3), 963-981. <a href="https://doi.org/10.1137/050644756.">https://doi.org/10.1137/050644756.</a> Preprint: <a href="https://arxiv.org/abs/quant-ph/0511069.">https://arxiv.org/abs/quant-ph/0511069.</a>
+ 
+3. IBM Quantum. *Bit-ordering in the Qiskit SDK*. <a href="https://quantum.cloud.ibm.com/docs/en/guides/bit-ordering.">https://quantum.cloud.ibm.com/docs/en/guides/bit-ordering.</a>
+</p>
+</body></html>

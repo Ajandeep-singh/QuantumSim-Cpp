@@ -1,0 +1,52 @@
+﻿<svg xmlns='http://www.w3.org/2000/svg' width='900' height='520' viewBox='0 0 900 520'>
+<rect width='100%' height='100%' fill='white'/>
+<text x='95' y='34' font-family='Arial' font-size='22' font-weight='bold'>Gate runtime versus repeated gate depth</text>
+<text x='95' y='59' font-family='Arial' font-size='13' fill='#444'>Median of 3 runs; 14 qubits; target qubit 13</text>
+<line x1='95' y1='420' x2='840' y2='420' stroke='#dddddd'/>
+<text x='83' y='424' text-anchor='end' font-family='Arial' font-size='12'>10^2</text>
+<line x1='95' y1='372.571' x2='840' y2='372.571' stroke='#dddddd'/>
+<text x='83' y='376.571' text-anchor='end' font-family='Arial' font-size='12'>10^3</text>
+<line x1='95' y1='325.143' x2='840' y2='325.143' stroke='#dddddd'/>
+<text x='83' y='329.143' text-anchor='end' font-family='Arial' font-size='12'>10^4</text>
+<line x1='95' y1='277.714' x2='840' y2='277.714' stroke='#dddddd'/>
+<text x='83' y='281.714' text-anchor='end' font-family='Arial' font-size='12'>10^5</text>
+<line x1='95' y1='230.286' x2='840' y2='230.286' stroke='#dddddd'/>
+<text x='83' y='234.286' text-anchor='end' font-family='Arial' font-size='12'>10^6</text>
+<line x1='95' y1='182.857' x2='840' y2='182.857' stroke='#dddddd'/>
+<text x='83' y='186.857' text-anchor='end' font-family='Arial' font-size='12'>10^7</text>
+<line x1='95' y1='135.429' x2='840' y2='135.429' stroke='#dddddd'/>
+<text x='83' y='139.429' text-anchor='end' font-family='Arial' font-size='12'>10^8</text>
+<line x1='95' y1='88' x2='840' y2='88' stroke='#dddddd'/>
+<text x='83' y='92' text-anchor='end' font-family='Arial' font-size='12'>10^9</text>
+<line x1='95' y1='88' x2='95' y2='420' stroke='#222'/>
+<line x1='95' y1='420' x2='840' y2='420' stroke='#222'/>
+<text x='95' y='443' text-anchor='middle' font-family='Arial' font-size='12'>1</text>
+<text x='467.5' y='443' text-anchor='middle' font-family='Arial' font-size='12'>10</text>
+<text x='840' y='443' text-anchor='middle' font-family='Arial' font-size='12'>100</text>
+<text x='467.5' y='490' text-anchor='middle' font-family='Arial' font-size='14'>Category</text>
+<text transform='translate(22 254) rotate(-90)' text-anchor='middle' font-family='Arial' font-size='14'>Elapsed time (ns) (log scale)</text>
+<circle cx='95' cy='258.244' r='3.5' fill='#1769aa'/>
+<circle cx='467.5' cy='211.323' r='3.5' fill='#1769aa'/>
+<circle cx='840' cy='163.977' r='3.5' fill='#1769aa'/>
+<polyline fill='none' stroke='#1769aa' stroke-width='2' points='95,258.244 467.5,211.323 840,163.977'/>
+<line x1='115' y1='470' x2='139' y2='470' stroke='#1769aa' stroke-width='3'/>
+<text x='145' y='474' font-family='Arial' font-size='12'>X generic_matrix</text>
+<circle cx='95' cy='317.258' r='3.5' fill='#d1495b'/>
+<circle cx='467.5' cy='269.912' r='3.5' fill='#d1495b'/>
+<circle cx='840' cy='222.325' r='3.5' fill='#d1495b'/>
+<polyline fill='none' stroke='#d1495b' stroke-width='2' points='95,317.258 467.5,269.912 840,222.325'/>
+<line x1='370' y1='470' x2='394' y2='470' stroke='#d1495b' stroke-width='3'/>
+<text x='400' y='474' font-family='Arial' font-size='12'>X specialized</text>
+<circle cx='95' cy='258.739' r='3.5' fill='#2a9d8f'/>
+<circle cx='467.5' cy='211.266' r='3.5' fill='#2a9d8f'/>
+<circle cx='840' cy='163.789' r='3.5' fill='#2a9d8f'/>
+<polyline fill='none' stroke='#2a9d8f' stroke-width='2' points='95,258.739 467.5,211.266 840,163.789'/>
+<line x1='625' y1='470' x2='649' y2='470' stroke='#2a9d8f' stroke-width='3'/>
+<text x='655' y='474' font-family='Arial' font-size='12'>P generic_matrix</text>
+<circle cx='95' cy='286.304' r='3.5' fill='#e09f3e'/>
+<circle cx='467.5' cy='238.954' r='3.5' fill='#e09f3e'/>
+<circle cx='840' cy='191.498' r='3.5' fill='#e09f3e'/>
+<polyline fill='none' stroke='#e09f3e' stroke-width='2' points='95,286.304 467.5,238.954 840,191.498'/>
+<line x1='115' y1='490' x2='139' y2='490' stroke='#e09f3e' stroke-width='3'/>
+<text x='145' y='494' font-family='Arial' font-size='12'>P specialized</text>
+</svg>
